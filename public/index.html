@@ -1,440 +1,113 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
   <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>サンプル</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.1.4.min.js"></script>
+    <script>
+      var access_token = "";
+      var client_id = "4890f272-92a9-4da4-ae8e-bd73ebb66168";
+      var redirect_uri = "http://localhost:3000/index.html";
+      var resource_uri = "https://graph.microsoft.com/";
+      var rest_uri = "https://graph.microsoft.com/beta/me/events";
+      var cancel_uri = "";
+      var v = "";
 
-    <script type="text/javascript"
-      src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDISOydZoomao-6RKXyzo6UGFSEwV2sIxc&sensor=false&language=ja&libraries=visualization">
+      $(function(){
+        var q = location.href.split("#");
+        if(q.length > 1){
+          var prms = q[1].split("&");
+          for(var i = 0;i < prms.length; i++){
+            prm = prms[i].split("=");
+            if(prm[0].toLowerCase() == "access_token"){
+              access_token = prm[1];
+              break;
+            }
+          }
+          $("#btnSignin").attr("disabled", true);
+          $("#btnCallApi").attr("disabled", false);
+          $("#btnCallApi").removeAttr("disabled");
+          $("#btnCancel").attr("disabled", false);
+          $("#btnCancel").removeAttr("disabled");
+        }else{
+          $("#btnSignin").attr("disabled", false);
+          $("#btnSignin").removeAttr("disabled");
+          $("#btnCallApi").attr("disabled", true);
+          $("#btnCancel").attr("disabled", true);
+        }
+
+        $("#btnSignin").click(function(){
+          var auth_uri = "https://login.windows.net/common/oauth2/authorize?response_type=token&redirect_uri=" + encodeURIComponent(redirect_uri) + "&client_id=" + client_id + "&resource=" + encodeURIComponent(resource_uri);
+          window.location.href = auth_uri;
+        });
+
+        $("#btnCallApi").click(function(){
+          $.ajax({
+            url      : rest_uri,
+            type     : "GET",
+            async    : false,
+            dataType : "json",
+            headers  : {
+              "Authorization" : "Bearer " + access_token
+            },
+            success  : function(data){
+              var ret = "";
+              v = data.value;
+              for(var j = 0;j < v.length; j++){
+                ret += "Subject:" + v[j].subject + ", Start:" + v[j].start.dateTime + ", End:" + v[j].end.dateTime + "\n";
+              }
+              $("#txtResult").val(ret);
+            },
+            error: function(){
+              alert("エラーが発生しました。");
+            }
+          });
+        });
+        
+        $("#btnCancel").click(function(){
+            var event_name = cancel_form.textbox.value;
+            for(var k = 0;k < v.length; k++){
+                if(v[k].subject == event_name){
+                    cancel_uri = rest_uri +"/"+ v[k].id;
+                }
+            }
+            $.ajax({
+              url      : cancel_uri,
+              type     : "DELETE",
+              async    : false,
+              dataType : "json",
+              headers  : {
+                "Authorization" : "Bearer " + access_token
+              },
+              success  : function(){
+            	  alert("予約をキャンセルしました。")
+              },
+              error: function(){
+                alert("エラーが発生しました。");
+              }
+            });
+          });
+      });
     </script>
-    
-    <script src="./code.js" type="text/javascript"></script>
-
   </head>
-  <body onload="initialize()">
-  <div align="center">
-  <form name="form1">
-  <table border="0">
-    <tr>
-      <td rowspan="2" align="center">
-        <font size="4">期間指定</font>
+  <body>
+    <table>
+      <tr>
+        <td><button id="btnSignin">サインイン</button>
+        <button id="btnCallApi">予約一覧</button>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2"><textarea id="txtResult" cols="90" rows="10"></textarea></td>
+      </tr>
+      <tr>
+      <td>キャンセルする予約名を入力してください。
+      <form name = "cancel_form">
+      <input type="text" name="textbox">
+      <button id="btnCancel">予約キャンセル</button>
+      </form>
       </td>
-      <td align="center">
-        <font size="2">開始</font>
-        <select name="start_year">
-          <option value="2016">2016年</option>
-        </select>
-        <select name="start_month">
-          <option value="01">1月</option>
-          <option value="02">2月</option>
-          <option value="03">3月</option>
-          <option value="04">4月</option>
-          <option value="05">5月</option>
-          <option value="06">6月</option>
-          <option value="07">7月</option>
-          <option value="08">8月</option>
-          <option value="09">9月</option>
-          <option value="10" selected>10月</option>
-          <option value="11">11月</option>
-          <option value="12">12月</option>
-        </select>
-        <select name="start_day">
-          <option value="01">1日</option>
-          <option value="02">2日</option>
-          <option value="03">3日</option>
-          <option value="04">4日</option>
-          <option value="05">5日</option>
-          <option value="06">6日</option>
-          <option value="07">7日</option>
-          <option value="08">8日</option>
-          <option value="09">9日</option>
-          <option value="10">10日</option>
-          <option value="11">11日</option>
-          <option value="12">12日</option>
-          <option value="13">13日</option>
-          <option value="14">14日</option>
-          <option value="15">15日</option>
-          <option value="16">16日</option>
-          <option value="17">17日</option>
-          <option value="18">18日</option>
-          <option value="19">19日</option>
-          <option value="20" selected>20日</option>
-          <option value="21">21日</option>
-          <option value="22">22日</option>
-          <option value="23">23日</option>
-          <option value="24">24日</option>
-          <option value="25">25日</option>
-          <option value="26">26日</option>
-          <option value="27">27日</option>
-          <option value="28">28日</option>
-          <option value="29">29日</option>
-          <option value="30">30日</option>
-          <option value="31">31日</option>
-        </select>
-        <select name="start_hour">
-          <option value="00">0時</option>
-          <option value="01">1時</option>
-          <option value="02">2時</option>
-          <option value="03">3時</option>
-          <option value="04">4時</option>
-          <option value="05">5時</option>
-          <option value="06">6時</option>
-          <option value="07">7時</option>
-          <option value="08">8時</option>
-          <option value="09">9時</option>
-          <option value="10">10時</option>
-          <option value="11">11時</option>
-          <option value="12">12時</option>
-          <option value="13">13時</option>
-          <option value="14">14時</option>
-          <option value="15">15時</option>
-          <option value="16" selected>16時</option>
-          <option value="17">17時</option>
-          <option value="18">18時</option>
-          <option value="19">19時</option>
-          <option value="20">20時</option>
-          <option value="21">21時</option>
-          <option value="22">22時</option>
-          <option value="23">23時</option>
-        </select>
-        <select name="start_minute">
-          <option value="00" selected>0分</option>
-          <option value="01">1分</option>
-          <option value="02">2分</option>
-          <option value="03">3分</option>
-          <option value="04">4分</option>
-          <option value="05">5分</option>
-          <option value="06">6分</option>
-          <option value="07">7分</option>
-          <option value="08">8分</option>
-          <option value="09">9分</option>
-          <option value="10">10分</option>
-          <option value="11">11分</option>
-          <option value="12">12分</option>
-          <option value="13">13分</option>
-          <option value="14">14分</option>
-          <option value="15">15分</option>
-          <option value="16">16分</option>
-          <option value="17">17分</option>
-          <option value="18">18分</option>
-          <option value="19">19分</option>
-          <option value="20">20分</option>
-          <option value="21">21分</option>
-          <option value="22">22分</option>
-          <option value="23">23分</option>
-          <option value="24">24分</option>
-          <option value="25">25分</option>
-          <option value="26">26分</option>
-          <option value="27">27分</option>
-          <option value="28">28分</option>
-          <option value="29">29分</option>
-          <option value="30">30分</option>
-          <option value="31">31分</option>
-          <option value="32">32分</option>
-          <option value="33">33分</option>
-          <option value="34">34分</option>
-          <option value="35">35分</option>
-          <option value="36">36分</option>
-          <option value="37">37分</option>
-          <option value="38">38分</option>
-          <option value="39">39分</option>
-          <option value="40">40分</option>
-          <option value="41">41分</option>
-          <option value="42">42分</option>
-          <option value="43">43分</option>
-          <option value="44">44分</option>
-          <option value="45">45分</option>
-          <option value="46">46分</option>
-          <option value="47">47分</option>
-          <option value="48">48分</option>
-          <option value="49">49分</option>
-          <option value="50">50分</option>
-          <option value="51">51分</option>
-          <option value="52">52分</option>
-          <option value="53">53分</option>
-          <option value="54">54分</option>
-          <option value="55">55分</option>
-          <option value="56">56分</option>
-          <option value="57">57分</option>
-          <option value="58">58分</option>
-          <option value="59">59分</option>   
-        </select>
-        <select name="start_second">
-          <option value="00" selected>0秒</option>
-          <option value="01">1秒</option>
-          <option value="02">2秒</option>
-          <option value="03">3秒</option>
-          <option value="04">4秒</option>
-          <option value="05">5秒</option>
-          <option value="06">6秒</option>
-          <option value="07">7秒</option>
-          <option value="08">8秒</option>
-          <option value="09">9秒</option>
-          <option value="10">10秒</option>
-          <option value="11">11秒</option>
-          <option value="12">12秒</option>
-          <option value="13">13秒</option>
-          <option value="14">14秒</option>
-          <option value="15">15秒</option>
-          <option value="16">16秒</option>
-          <option value="17">17秒</option>
-          <option value="18">18秒</option>
-          <option value="19">19秒</option>
-          <option value="20">20秒</option>
-          <option value="21">21秒</option>
-          <option value="22">22秒</option>
-          <option value="23">23秒</option>
-          <option value="24">24秒</option>
-          <option value="25">25秒</option>
-          <option value="26">26秒</option>
-          <option value="27">27秒</option>
-          <option value="28">28秒</option>
-          <option value="29">29秒</option>
-          <option value="30">30秒</option>
-          <option value="31">31秒</option>
-          <option value="32">32秒</option>
-          <option value="33">33秒</option>
-          <option value="34">34秒</option>
-          <option value="35">35秒</option>
-          <option value="36">36秒</option>
-          <option value="37">37秒</option>
-          <option value="38">38秒</option>
-          <option value="39">39秒</option>
-          <option value="40">40秒</option>
-          <option value="41">41秒</option>
-          <option value="42">42秒</option>
-          <option value="43">43秒</option>
-          <option value="44">44秒</option>
-          <option value="45">45秒</option>
-          <option value="46">46秒</option>
-          <option value="47">47秒</option>
-          <option value="48">48秒</option>
-          <option value="49">49秒</option>
-          <option value="50">50秒</option>
-          <option value="51">51秒</option>
-          <option value="52">52秒</option>
-          <option value="53">53秒</option>
-          <option value="54">54秒</option>
-          <option value="55">55秒</option>
-          <option value="56">56秒</option>
-          <option value="57">57秒</option>
-          <option value="58">58秒</option>
-          <option value="59">59秒</option>   
-        </select>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <font size="2">終了</font>
-        <select name="end_year">
-          <option value="2016">2016年</option>
-        </select>
-        <select name="end_month">
-          <option value="01">1月</option>
-          <option value="02">2月</option>
-          <option value="03">3月</option>
-          <option value="04">4月</option>
-          <option value="05">5月</option>
-          <option value="06">6月</option>
-          <option value="07">7月</option>
-          <option value="08">8月</option>
-          <option value="09">9月</option>
-          <option value="10" selected>10月</option>
-          <option value="11">11月</option>
-          <option value="12">12月</option>
-        </select>
-        <select name="end_day">
-          <option value="01">1日</option>
-          <option value="02">2日</option>
-          <option value="03">3日</option>
-          <option value="04">4日</option>
-          <option value="05">5日</option>
-          <option value="06">6日</option>
-          <option value="07">7日</option>
-          <option value="08">8日</option>
-          <option value="09">9日</option>
-          <option value="10">10日</option>
-          <option value="11">11日</option>
-          <option value="12">12日</option>
-          <option value="13">13日</option>
-          <option value="14">14日</option>
-          <option value="15">15日</option>
-          <option value="16">16日</option>
-          <option value="17">17日</option>
-          <option value="18">18日</option>
-          <option value="19">19日</option>
-          <option value="20" selected>20日</option>
-          <option value="21">21日</option>
-          <option value="22">22日</option>
-          <option value="23">23日</option>
-          <option value="24">24日</option>
-          <option value="25">25日</option>
-          <option value="26">26日</option>
-          <option value="27">27日</option>
-          <option value="28">28日</option>
-          <option value="29">29日</option>
-          <option value="30">30日</option>
-          <option value="31">31日</option>
-        </select>
-        <select name="end_hour">
-          <option value="00">0時</option>
-          <option value="01">1時</option>
-          <option value="02">2時</option>
-          <option value="03">3時</option>
-          <option value="04">4時</option>
-          <option value="05">5時</option>
-          <option value="06">6時</option>
-          <option value="07">7時</option>
-          <option value="08">8時</option>
-          <option value="09">9時</option>
-          <option value="10">10時</option>
-          <option value="11">11時</option>
-          <option value="12">12時</option>
-          <option value="13">13時</option>
-          <option value="14">14時</option>
-          <option value="15">15時</option>
-          <option value="16" selected>16時</option>
-          <option value="17">17時</option>
-          <option value="18">18時</option>
-          <option value="19">19時</option>
-          <option value="20">20時</option>
-          <option value="21">21時</option>
-          <option value="22">22時</option>
-          <option value="23">23時</option>
-        </select>
-        <select name="end_minute">
-          <option value="00" selected>0分</option>
-          <option value="01">1分</option>
-          <option value="02">2分</option>
-          <option value="03">3分</option>
-          <option value="04">4分</option>
-          <option value="05">5分</option>
-          <option value="06">6分</option>
-          <option value="07">7分</option>
-          <option value="08">8分</option>
-          <option value="09">9分</option>
-          <option value="10">10分</option>
-          <option value="11">11分</option>
-          <option value="12">12分</option>
-          <option value="13">13分</option>
-          <option value="14">14分</option>
-          <option value="15">15分</option>
-          <option value="16">16分</option>
-          <option value="17">17分</option>
-          <option value="18">18分</option>
-          <option value="19">19分</option>
-          <option value="20">20分</option>
-          <option value="21">21分</option>
-          <option value="22">22分</option>
-          <option value="23">23分</option>
-          <option value="24">24分</option>
-          <option value="25">25分</option>
-          <option value="26">26分</option>
-          <option value="27">27分</option>
-          <option value="28">28分</option>
-          <option value="29">29分</option>
-          <option value="30">30分</option>
-          <option value="31">31分</option>
-          <option value="32">32分</option>
-          <option value="33">33分</option>
-          <option value="34">34分</option>
-          <option value="35">35分</option>
-          <option value="36">36分</option>
-          <option value="37">37分</option>
-          <option value="38">38分</option>
-          <option value="39">39分</option>
-          <option value="40">40分</option>
-          <option value="41">41分</option>
-          <option value="42">42分</option>
-          <option value="43">43分</option>
-          <option value="44">44分</option>
-          <option value="45">45分</option>
-          <option value="46">46分</option>
-          <option value="47">47分</option>
-          <option value="48">48分</option>
-          <option value="49">49分</option>
-          <option value="50">50分</option>
-          <option value="51">51分</option>
-          <option value="52">52分</option>
-          <option value="53">53分</option>
-          <option value="54">54分</option>
-          <option value="55">55分</option>
-          <option value="56">56分</option>
-          <option value="57">57分</option>
-          <option value="58">58分</option>
-          <option value="59">59分</option>   
-        </select>
-        <select name="end_second">
-          <option value="00" selected>0秒</option>
-          <option value="01">1秒</option>
-          <option value="02">2秒</option>
-          <option value="03">3秒</option>
-          <option value="04">4秒</option>
-          <option value="05">5秒</option>
-          <option value="06">6秒</option>
-          <option value="07">7秒</option>
-          <option value="08">8秒</option>
-          <option value="09">9秒</option>
-          <option value="10">10秒</option>
-          <option value="11">11秒</option>
-          <option value="12">12秒</option>
-          <option value="13">13秒</option>
-          <option value="14">14秒</option>
-          <option value="15">15秒</option>
-          <option value="16">16秒</option>
-          <option value="17">17秒</option>
-          <option value="18">18秒</option>
-          <option value="19">19秒</option>
-          <option value="20">20秒</option>
-          <option value="21">21秒</option>
-          <option value="22">22秒</option>
-          <option value="23">23秒</option>
-          <option value="24">24秒</option>
-          <option value="25">25秒</option>
-          <option value="26">26秒</option>
-          <option value="27">27秒</option>
-          <option value="28">28秒</option>
-          <option value="29">29秒</option>
-          <option value="30">30秒</option>
-          <option value="31">31秒</option>
-          <option value="32">32秒</option>
-          <option value="33">33秒</option>
-          <option value="34">34秒</option>
-          <option value="35">35秒</option>
-          <option value="36">36秒</option>
-          <option value="37">37秒</option>
-          <option value="38">38秒</option>
-          <option value="39">39秒</option>
-          <option value="40">40秒</option>
-          <option value="41">41秒</option>
-          <option value="42">42秒</option>
-          <option value="43">43秒</option>
-          <option value="44">44秒</option>
-          <option value="45">45秒</option>
-          <option value="46">46秒</option>
-          <option value="47">47秒</option>
-          <option value="48">48秒</option>
-          <option value="49">49秒</option>
-          <option value="50">50秒</option>
-          <option value="51">51秒</option>
-          <option value="52">52秒</option>
-          <option value="53">53秒</option>
-          <option value="54">54秒</option>
-          <option value="55">55秒</option>
-          <option value="56">56秒</option>
-          <option value="57">57秒</option>
-          <option value="58">58秒</option>
-          <option value="59">59秒</option>   
-        </select>
-      </td>
-    </tr>
-    <tr>
-      <td colspan="7" align="center">
-         <input type="button" value="表示" onclick="display()">
-      </td>
-    </tr>
-  </table>
- </form>
-    <div id="map_canvas" style="width:750px; height:450px"></div>
- </div>
- </body>
+      </tr>
+    </table>
+  </body>
 </html>
